@@ -1,5 +1,8 @@
 package com.elite.tools.soar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by wjc133
  * Date: 2016/5/18
@@ -31,7 +34,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * An event log tracing the lifetime of this request; for debugging.
      */
-    private final MarkerLog mEventLog = MarkerLog.ENABLED ? new MarkerLog() : null;
+    private final Logger LOG = LoggerFactory.getLogger(Request.class);
 
     /**
      * Request method of this request.  Currently supports GET, POST, PUT, DELETE, HEAD, OPTIONS,
@@ -53,11 +56,6 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * The unique identifier of the request
      */
     private String mIdentifier;
-
-    /**
-     * Default tag for {@link TrafficStats}.
-     */
-    private final int mDefaultTrafficStatsTag;
 
     /**
      * Listener interface for errors.
