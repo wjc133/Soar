@@ -3,6 +3,11 @@ package com.elite.tools.soar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Created by wjc133
  * Date: 2016/5/18
@@ -110,7 +115,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * is provided by subclasses, who have a better idea of how to deliver an
      * already-parsed response.
      *
-     * @deprecated Use {@link #Request(int, String, com.android.volley.Response.ErrorListener)}.
+     * @deprecated Use {@link #Request(int, String, com.elite.tools.soar.Response.ErrorListener)}.
      */
     @Deprecated
     public Request(String url, Response.ErrorListener listener) {
@@ -129,8 +134,6 @@ public abstract class Request<T> implements Comparable<Request<T>> {
         mIdentifier = createIdentifier(method, url);
         mErrorListener = listener;
         setRetryPolicy(new DefaultRetryPolicy());
-
-        mDefaultTrafficStatsTag = findDefaultTrafficStatsTag(url);
     }
 
     /**
@@ -161,33 +164,10 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     }
 
     /**
-     * @return this request's {@link com.android.volley.Response.ErrorListener}.
+     * @return this request's {@link com.elite.tools.soar.Response.ErrorListener}.
      */
     public Response.ErrorListener getErrorListener() {
         return mErrorListener;
-    }
-
-    /**
-     * @return A tag for use with {@link TrafficStats#setThreadStatsTag(int)}
-     */
-    public int getTrafficStatsTag() {
-        return mDefaultTrafficStatsTag;
-    }
-
-    /**
-     * @return The hashcode of the URL's host component, or 0 if there is none.
-     */
-    private static int findDefaultTrafficStatsTag(String url) {
-        if (!TextUtils.isEmpty(url)) {
-            Uri uri = Uri.parse(url);
-            if (uri != null) {
-                String host = uri.getHost();
-                if (host != null) {
-                    return host.hashCode();
-                }
-            }
-        }
-        return 0;
     }
 
     /**
@@ -201,43 +181,16 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     }
 
     /**
-     * Adds an event to this request's event log; for debugging.
-     */
-    public void addMarker(String tag) {
-        if (MarkerLog.ENABLED) {
-            mEventLog.add(tag, Thread.currentThread().getId());
-        }
-    }
-
-    /**
      * Notifies the request queue that this request has finished (successfully or with error).
      * <p>
      * <p>Also dumps all events from this request's event log; for debugging.</p>
      */
-    void finish(final String tag) {
+    void finish(String mTag) {
         if (mRequestQueue != null) {
             mRequestQueue.finish(this);
             onFinish();
         }
-        if (MarkerLog.ENABLED) {
-            final long threadId = Thread.currentThread().getId();
-            if (Looper.myLooper() != Looper.getMainLooper()) {
-                // If we finish marking off of the main thread, we need to
-                // actually do it on the main thread to ensure correct ordering.
-                Handler mainThread = new Handler(Looper.getMainLooper());
-                mainThread.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mEventLog.add(tag, threadId);
-                        mEventLog.finish(this.toString());
-                    }
-                });
-                return;
-            }
-
-            mEventLog.add(tag, threadId);
-            mEventLog.finish(this.toString());
-        }
+        LOG.info("request is finished. tag = {}", mTag);
     }
 
     /**
@@ -570,11 +523,11 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * <p>
      * <p>The default implementation just returns the passed 'networkError'.</p>
      *
-     * @param volleyError the error retrieved from the network
+     * @param soarError the error retrieved from the network
      * @return an NetworkError augmented with additional information
      */
-    protected VolleyError parseNetworkError(VolleyError volleyError) {
-        return volleyError;
+    protected SoarError parseNetworkError(SoarError soarError) {
+        return soarError;
     }
 
     /**
@@ -593,7 +546,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      *
      * @param error Error details
      */
-    public void deliverError(VolleyError error) {
+    public void deliverError(SoarError error) {
         if (mErrorListener != null) {
             mErrorListener.onErrorResponse(error);
         }
@@ -617,8 +570,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
 
     @Override
     public String toString() {
-        String trafficStatsTag = "0x" + Integer.toHexString(getTrafficStatsTag());
-        return (mCanceled ? "[X] " : "[ ] ") + getUrl() + " " + trafficStatsTag + " "
+        return (mCanceled ? "[X] " : "[ ] ") + getUrl() + " "
                 + getPriority() + " " + mSequence;
     }
 

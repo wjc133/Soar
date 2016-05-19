@@ -1,4 +1,4 @@
-package com.elite.tools.soar.toolbox;
+package com.elite.tools.soar;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
