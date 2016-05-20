@@ -3,7 +3,6 @@ package com.elite.tools.soar.toolbox;
 import com.elite.tools.soar.NetworkResponse;
 import com.elite.tools.soar.ParseError;
 import com.elite.tools.soar.Response;
-import com.oracle.javafx.jmx.json.JSONException;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
@@ -45,8 +44,6 @@ public class GsonRequest<T> extends JsonRequest<T> {
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {
             return Response.error(new ParseError(e));
-        } catch (JSONException je) {
-            return Response.error(new ParseError(je));
         }
     }
 
