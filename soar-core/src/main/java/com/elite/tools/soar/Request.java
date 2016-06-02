@@ -21,6 +21,10 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      */
     private static final String DEFAULT_PARAMS_ENCODING = "UTF-8";
 
+    public Map<String,String> getCookies() {
+        return Collections.emptyMap();
+    }
+
     /**
      * Supported request methods.
      */

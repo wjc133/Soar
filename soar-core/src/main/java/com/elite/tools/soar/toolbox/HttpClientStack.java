@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -39,6 +40,7 @@ import org.apache.http.params.HttpParams;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +53,7 @@ public class HttpClientStack implements HttpStack {
     protected final HttpClient mClient;
 
     private final static String HEADER_CONTENT_TYPE = "Content-Type";
+    private final static String HEADER_COOKIE = "Cookie";
 
     public HttpClientStack(HttpClient client) {
         mClient = client;
@@ -59,6 +62,22 @@ public class HttpClientStack implements HttpStack {
     private static void addHeaders(HttpUriRequest httpRequest, Map<String, String> headers) {
         for (String key : headers.keySet()) {
             httpRequest.setHeader(key, headers.get(key));
+        }
+    }
+
+    private void addCookies(HttpUriRequest httpRequest, Map<String, String> cookies) {
+        StringBuilder cookieBuilder = new StringBuilder();
+        Iterator<String> keyIter = cookies.keySet().iterator();
+        while (keyIter.hasNext()) {
+            String key = keyIter.next();
+            cookieBuilder.append(key).append("=").append(cookies.get(key));
+            if (keyIter.hasNext()) {
+                cookieBuilder.append(";");
+            }
+        }
+        String cookie = cookieBuilder.toString();
+        if (cookie.length() > 0) {
+            httpRequest.setHeader(new BasicHeader(HEADER_COOKIE, cookie));
         }
     }
 
@@ -77,6 +96,7 @@ public class HttpClientStack implements HttpStack {
         HttpUriRequest httpRequest = createHttpRequest(request, additionalHeaders);
         addHeaders(httpRequest, additionalHeaders);
         addHeaders(httpRequest, request.getHeaders());
+        addCookies(httpRequest, request.getCookies());
         onPrepareRequest(httpRequest);
         HttpParams httpParams = httpRequest.getParams();
         int timeoutMs = request.getTimeoutMs();
@@ -92,7 +112,7 @@ public class HttpClientStack implements HttpStack {
      */
     @SuppressWarnings("deprecation")
     /* protected */ static HttpUriRequest createHttpRequest(Request<?> request,
-            Map<String, String> additionalHeaders) throws AuthFailureError {
+                                                            Map<String, String> additionalHeaders) throws AuthFailureError {
         switch (request.getMethod()) {
             case Method.DEPRECATED_GET_OR_POST: {
                 // This is the deprecated way that needs to be handled for backwards compatibility.
@@ -144,7 +164,7 @@ public class HttpClientStack implements HttpStack {
     }
 
     private static void setEntityIfNonEmptyBody(HttpEntityEnclosingRequestBase httpRequest,
-            Request<?> request) throws AuthFailureError {
+                                                Request<?> request) throws AuthFailureError {
         byte[] body = request.getBody();
         if (body != null) {
             HttpEntity entity = new ByteArrayEntity(body);
@@ -154,7 +174,7 @@ public class HttpClientStack implements HttpStack {
 
     /**
      * Called before the request is executed using the underlying HttpClient.
-     *
+     * <p>
      * <p>Overwrite in subclasses to augment the request.</p>
      */
     protected void onPrepareRequest(HttpUriRequest request) throws IOException {

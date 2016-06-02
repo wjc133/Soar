@@ -4,6 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
     <groupId>com.elite.tools</groupId>
     <artifactId>soar</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -11,6 +17,28 @@
         <module>soar-core</module>
     </modules>
     <packaging>pom</packaging>
+
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <tag>master</tag>
+        <url>git@github.com:wjc133/Soar.git</url>
+        <connection>scm:git@github.com:wjc133/Soar.git</connection>
+        <developerConnection>scm:git@github.com:wjc133/Soar.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <name>wjc133</name>
+            <email>cmsdwjc133@gmail.com</email>
+            <organization>Elite Group</organization>
+        </developer>
+    </developers>
 
     <properties>
         <httpclient.version>4.5.2</httpclient.version>

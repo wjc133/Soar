@@ -19,6 +19,7 @@ package com.elite.tools.soar.toolbox;
 import com.elite.tools.soar.Network;
 import com.elite.tools.soar.RequestQueue;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import java.io.File;
 
@@ -40,7 +41,9 @@ public class Soar {
     public static RequestQueue newRequestQueue(HttpStack stack, int maxDiskCacheBytes) {
         File cacheDir = new File(SystemPathGetter.INSTANCE.getRootPath(), DEFAULT_CACHE_DIR);
 
-        stack = new HttpClientStack(new DefaultHttpClient());
+        if (stack == null) {
+            stack = new HttpClientStack(HttpClients.createDefault());
+        }
 
         Network network = new BasicNetwork(stack);
 

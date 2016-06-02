@@ -41,6 +41,7 @@ public class RequestTest {
         }
     }
 
+    @Ignore
     @Test
     public void testGsonRequest() {
         String url = "http://localhost:8081/soar/news";
