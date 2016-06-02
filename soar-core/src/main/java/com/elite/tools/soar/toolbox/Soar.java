@@ -18,7 +18,6 @@ package com.elite.tools.soar.toolbox;
 
 import com.elite.tools.soar.Network;
 import com.elite.tools.soar.RequestQueue;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 import java.io.File;
