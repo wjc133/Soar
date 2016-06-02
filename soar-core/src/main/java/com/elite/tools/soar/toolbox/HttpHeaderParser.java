@@ -30,7 +30,7 @@ import java.util.Map;
 public class HttpHeaderParser {
 
     /**
-     * Extracts a {@link Cache.Entry} from a {@link NetworkResponse}.
+     * Extracts a {@link com.elite.tools.soar.Cache.Entry} from a {@link NetworkResponse}.
      *
      * @param response The network response to parse headers from
      * @return a cache entry for the given response, or null if the response is not cacheable.
