@@ -1,8 +1,8 @@
 package com.elite.tools.soar.toolbox;
 
+import com.elite.tools.soar.InnerResponse;
 import com.elite.tools.soar.NetworkResponse;
-import com.elite.tools.soar.ParseError;
-import com.elite.tools.soar.Response;
+import com.elite.tools.soar.exception.ParseError;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
@@ -16,18 +16,18 @@ public class GsonRequest<T> extends JsonRequest<T> {
     private Class<T> tClz;
     private Type tType;
 
-    public GsonRequest(int method, String url, Class<T> clz, Response.Listener<T> listener, Response.ErrorListener errorListener) {
+    public GsonRequest(int method, String url, Class<T> clz, InnerResponse.Listener<T> listener, InnerResponse.ErrorListener errorListener) {
         super(method, url, null, listener, errorListener);
         tClz = clz;
     }
 
-    public GsonRequest(int method, String url, Type type, Response.Listener<T> listener, Response.ErrorListener errorListener) {
+    public GsonRequest(int method, String url, Type type, InnerResponse.Listener<T> listener, InnerResponse.ErrorListener errorListener) {
         super(method, url, null, listener, errorListener);
         tType = type;
     }
 
     @Override
-    protected Response<T> parseNetworkResponse(NetworkResponse response) {
+    protected InnerResponse<T> parseNetworkResponse(NetworkResponse response) {
         try {
             String jsonString = new String(response.data,
                     HttpHeaderParser.parseCharset(response.headers, PROTOCOL_CHARSET));
@@ -40,10 +40,10 @@ public class GsonRequest<T> extends JsonRequest<T> {
             if (data == null) {
                 return null;
             }
-            return Response.success(data,
+            return InnerResponse.success(data,
                     HttpHeaderParser.parseCacheHeaders(response));
         } catch (UnsupportedEncodingException e) {
-            return Response.error(new ParseError(e));
+            return InnerResponse.error(new ParseError(e));
         }
     }
 

@@ -1,12 +1,14 @@
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
+
 /**
  * Created by wjc133
  * Date: 2016/5/20
  * Time: 0:07
  * Description:
  */
-public class Response<T> {
+public class InnerResponse<T> {
 
     /**
      * Parsed response, or null in the case of error.
@@ -25,29 +27,29 @@ public class Response<T> {
      */
     public boolean intermediate = false;
 
-    private Response(T result, Cache.Entry cacheEntry) {
+    private InnerResponse(T result, Cache.Entry cacheEntry) {
         this.result = result;
         this.cacheEntry = cacheEntry;
         this.error = null;
     }
 
-    private Response(SoarError error) {
+    private InnerResponse(SoarError error) {
         this.result = null;
         this.cacheEntry = null;
         this.error = error;
     }
 
     /** Returns a successful response containing the parsed result. */
-    public static <T> Response<T> success(T result, Cache.Entry cacheEntry) {
-        return new Response<T>(result, cacheEntry);
+    public static <T> InnerResponse<T> success(T result, Cache.Entry cacheEntry) {
+        return new InnerResponse<T>(result, cacheEntry);
     }
 
     /**
      * Returns a failed response containing the given error code and an optional
      * localized message displayed to the user.
      */
-    public static <T> Response<T> error(SoarError error) {
-        return new Response<T>(error);
+    public static <T> InnerResponse<T> error(SoarError error) {
+        return new InnerResponse<T>(error);
     }
 
     /**

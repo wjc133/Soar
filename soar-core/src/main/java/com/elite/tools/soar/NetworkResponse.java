@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Data and headers returned from {@link Network#performRequest(Request)}.
+ * Data and headers returned from {@link Network#performRequest(InnerRequest)}.
  */
 public class NetworkResponse implements Serializable{
     private static final long serialVersionUID = -20150728102000L;
@@ -31,7 +31,7 @@ public class NetworkResponse implements Serializable{
     /**
      * Creates a new network response.
      * @param statusCode the HTTP status code
-     * @param data Response body
+     * @param data InnerResponse body
      * @param headers Headers returned with this response, or null for none
      * @param notModified True if the server returned a 304 and the data was already in cache
      * @param networkTimeMs Round-trip network time to receive network response
@@ -64,7 +64,7 @@ public class NetworkResponse implements Serializable{
     /** Raw data from this response. */
     public final byte[] data;
 
-    /** Response headers. */
+    /** InnerResponse headers. */
     public final Map<String, String> headers;
 
     /** True if the server returned a 304 (Not Modified). */

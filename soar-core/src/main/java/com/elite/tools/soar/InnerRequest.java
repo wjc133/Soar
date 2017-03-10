@@ -1,5 +1,8 @@
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.AuthFailureError;
+import com.elite.tools.soar.exception.SoarError;
+import com.elite.tools.soar.exception.TimeoutError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +17,7 @@ import java.util.Map;
  * Time: 21:03
  */
 
-public abstract class Request<T> implements Comparable<Request<T>> {
+public abstract class InnerRequest<T> implements Comparable<InnerRequest<T>> {
 
     /**
      * Default encoding for POST or PUT parameters. See {@link #getParamsEncoding()}.
@@ -43,10 +46,10 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * An event log tracing the lifetime of this request; for debugging.
      */
-    private final Logger LOG = LoggerFactory.getLogger(Request.class);
+    private final Logger LOG = LoggerFactory.getLogger(InnerRequest.class);
 
     /**
-     * Request method of this request.  Currently supports GET, POST, PUT, DELETE, HEAD, OPTIONS,
+     * InnerRequest method of this request.  Currently supports GET, POST, PUT, DELETE, HEAD, OPTIONS,
      * TRACE, and PATCH.
      */
     private final int mMethod;
@@ -69,7 +72,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * Listener interface for errors.
      */
-    private Response.ErrorListener mErrorListener;
+    private InnerResponse.ErrorListener mErrorListener;
 
     /**
      * Sequence number of this request, used to enforce FIFO ordering.
@@ -119,10 +122,10 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * is provided by subclasses, who have a better idea of how to deliver an
      * already-parsed response.
      *
-     * @deprecated Use {@link #Request(int, String, com.elite.tools.soar.Response.ErrorListener)}.
+     * @deprecated Use {@link #InnerRequest(int, String, InnerResponse.ErrorListener)}.
      */
     @Deprecated
-    public Request(String url, Response.ErrorListener listener) {
+    public InnerRequest(String url, InnerResponse.ErrorListener listener) {
         this(Method.DEPRECATED_GET_OR_POST, url, listener);
     }
 
@@ -132,7 +135,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * delivery of responses is provided by subclasses, who have a better idea of how to deliver
      * an already-parsed response.
      */
-    public Request(int method, String url, Response.ErrorListener listener) {
+    public InnerRequest(int method, String url, InnerResponse.ErrorListener listener) {
         mMethod = method;
         mUrl = url;
         mIdentifier = createIdentifier(method, url);
@@ -151,9 +154,9 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * Set a tag on this request. Can be used to cancel all requests with this
      * tag by {@link RequestQueue#cancelAll(Object)}.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public Request<?> setTag(Object tag) {
+    public InnerRequest<?> setTag(Object tag) {
         mTag = tag;
         return this;
     }
@@ -161,25 +164,25 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * Returns this request's tag.
      *
-     * @see Request#setTag(Object)
+     * @see InnerRequest#setTag(Object)
      */
     public Object getTag() {
         return mTag;
     }
 
     /**
-     * @return this request's {@link com.elite.tools.soar.Response.ErrorListener}.
+     * @return this request's {@link InnerResponse.ErrorListener}.
      */
-    public Response.ErrorListener getErrorListener() {
+    public InnerResponse.ErrorListener getErrorListener() {
         return mErrorListener;
     }
 
     /**
      * Sets the retry policy for this request.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public Request<?> setRetryPolicy(RetryPolicy retryPolicy) {
+    public InnerRequest<?> setRetryPolicy(RetryPolicy retryPolicy) {
         mRetryPolicy = retryPolicy;
         return this;
     }
@@ -208,9 +211,9 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * Associates this request with the given queue. The request queue will be notified when this
      * request has finished.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public Request<?> setRequestQueue(RequestQueue requestQueue) {
+    public InnerRequest<?> setRequestQueue(RequestQueue requestQueue) {
         mRequestQueue = requestQueue;
         return this;
     }
@@ -218,9 +221,9 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * Sets the sequence number of this request.  Used by {@link RequestQueue}.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public final Request<?> setSequence(int sequence) {
+    public final InnerRequest<?> setSequence(int sequence) {
         mSequence = sequence;
         return this;
     }
@@ -274,9 +277,9 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * Annotates this request with an entry retrieved for it from cache.
      * Used for cache coherency support.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public Request<?> setCacheEntry(Cache.Entry entry) {
+    public InnerRequest<?> setCacheEntry(Cache.Entry entry) {
         mCacheEntry = entry;
         return this;
     }
@@ -448,9 +451,9 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     /**
      * Set whether or not responses to this request should be cached.
      *
-     * @return This Request object to allow for chaining.
+     * @return This InnerRequest object to allow for chaining.
      */
-    public final Request<?> setShouldCache(boolean shouldCache) {
+    public final InnerRequest<?> setShouldCache(boolean shouldCache) {
         mShouldCache = shouldCache;
         return this;
     }
@@ -517,10 +520,10 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * called from a worker thread.  The response will not be delivered
      * if you return null.
      *
-     * @param response Response from the network
+     * @param response InnerResponse from the network
      * @return The parsed response, or null in the case of an error
      */
-    abstract protected Response<T> parseNetworkResponse(NetworkResponse response);
+    abstract protected InnerResponse<T> parseNetworkResponse(NetworkResponse response);
 
     /**
      * Subclasses can override this method to parse 'networkError' and return a more specific error.
@@ -545,7 +548,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     abstract protected void deliverResponse(T response);
 
     /**
-     * Delivers error message to the ErrorListener that the Request was
+     * Delivers error message to the ErrorListener that the InnerRequest was
      * initialized with.
      *
      * @param error Error details
@@ -561,7 +564,7 @@ public abstract class Request<T> implements Comparable<Request<T>> {
      * sequence number to provide FIFO ordering.
      */
     @Override
-    public int compareTo(Request<T> other) {
+    public int compareTo(InnerRequest<T> other) {
         Priority left = this.getPriority();
         Priority right = other.getPriority();
 
@@ -581,14 +584,14 @@ public abstract class Request<T> implements Comparable<Request<T>> {
     private static long sCounter;
 
     /**
-     * sha1(Request:method:url:timestamp:counter)
+     * sha1(InnerRequest:method:url:timestamp:counter)
      *
      * @param method http method
      * @param url    http request url
      * @return sha1 hash string
      */
     private static String createIdentifier(final int method, final String url) {
-        return InternalUtils.sha1Hash("Request:" + method + ":" + url +
+        return InternalUtils.sha1Hash("InnerRequest:" + method + ":" + url +
                 ":" + System.currentTimeMillis() + ":" + (sCounter++));
     }
 }

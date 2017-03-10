@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
 
+import com.elite.tools.soar.NetworkResponse;
 
 /**
- * Error indicating that there was an authentication failure when performing a Request.
+ * Indicates that there was a network error when performing a Soar request.
  */
 @SuppressWarnings("serial")
-public class AuthFailureError extends SoarError {
-
-    public AuthFailureError() { }
-
-    public AuthFailureError(NetworkResponse response) {
-        super(response);
+public class NetworkError extends SoarError {
+    public NetworkError() {
+        super();
     }
 
-    public AuthFailureError(String message) {
-        super(message);
+    public NetworkError(Throwable cause) {
+        super(cause);
     }
 
-    public AuthFailureError(String message, Exception reason) {
-        super(message, reason);
+    public NetworkError(NetworkResponse networkResponse) {
+        super(networkResponse);
     }
-
 }

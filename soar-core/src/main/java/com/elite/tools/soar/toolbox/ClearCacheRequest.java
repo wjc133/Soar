@@ -17,14 +17,14 @@
 package com.elite.tools.soar.toolbox;
 
 import com.elite.tools.soar.Cache;
+import com.elite.tools.soar.InnerRequest;
+import com.elite.tools.soar.InnerResponse;
 import com.elite.tools.soar.NetworkResponse;
-import com.elite.tools.soar.Request;
-import com.elite.tools.soar.Response;
 
 /**
  * A synthetic request used for clearing the cache.
  */
-public class ClearCacheRequest extends Request<Object> {
+public class ClearCacheRequest extends InnerRequest<Object> {
     private final Cache mCache;
     private final Runnable mCallback;
 
@@ -57,7 +57,7 @@ public class ClearCacheRequest extends Request<Object> {
     }
 
     @Override
-    protected Response<Object> parseNetworkResponse(NetworkResponse response) {
+    protected InnerResponse<Object> parseNetworkResponse(NetworkResponse response) {
         return null;
     }
 

@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
+
+import com.elite.tools.soar.NetworkResponse;
 
 /**
- * Indicates that there was a network error when performing a Soar request.
+ * Indicates that the server responded with an error response.
  */
 @SuppressWarnings("serial")
-public class NetworkError extends SoarError {
-    public NetworkError() {
-        super();
-    }
-
-    public NetworkError(Throwable cause) {
-        super(cause);
-    }
-
-    public NetworkError(NetworkResponse networkResponse) {
+public class ServerError extends SoarError {
+    public ServerError(NetworkResponse networkResponse) {
         super(networkResponse);
     }
+
+    public ServerError() {
+        super();
+    }
 }
+

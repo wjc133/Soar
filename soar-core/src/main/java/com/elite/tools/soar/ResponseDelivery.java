@@ -16,19 +16,21 @@
 
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
+
 public interface ResponseDelivery {
     /**
      * 解析并分发一个网络请求或者缓存请求。
      */
-    void postResponse(Request<?> request, Response<?> response);
+    void postResponse(InnerRequest<?> request, InnerResponse<?> response);
 
     /**
      * 解析并分发一个网络请求或者缓存请求。并在分发完成后执行runnable内容。
      */
-    void postResponse(Request<?> request, Response<?> response, Runnable runnable);
+    void postResponse(InnerRequest<?> request, InnerResponse<?> response, Runnable runnable);
 
     /**
      * 向对应request分发一个网络错误。
      */
-    void postError(Request<?> request, SoarError error);
+    void postError(InnerRequest<?> request, SoarError error);
 }

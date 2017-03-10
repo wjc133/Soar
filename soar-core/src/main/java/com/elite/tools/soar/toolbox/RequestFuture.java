@@ -16,9 +16,9 @@
 
 package com.elite.tools.soar.toolbox;
 
-import com.elite.tools.soar.Request;
-import com.elite.tools.soar.Response;
-import com.elite.tools.soar.SoarError;
+import com.elite.tools.soar.InnerRequest;
+import com.elite.tools.soar.InnerResponse;
+import com.elite.tools.soar.exception.SoarError;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -51,9 +51,9 @@ import java.util.concurrent.TimeoutException;
  *
  * @param <T> The type of parsed response this future expects.
  */
-public class RequestFuture<T> implements Future<T>, Response.Listener<T>,
-        Response.ErrorListener {
-    private Request<?> mRequest;
+public class RequestFuture<T> implements Future<T>, InnerResponse.Listener<T>,
+        InnerResponse.ErrorListener {
+    private InnerRequest<?> mRequest;
     private boolean mResultReceived = false;
     private T mResult;
     private SoarError mException;
@@ -65,7 +65,7 @@ public class RequestFuture<T> implements Future<T>, Response.Listener<T>,
         return new RequestFuture<E>();
     }
 
-    public void setRequest(Request<?> request) {
+    public void setRequest(InnerRequest<?> request) {
         mRequest = request;
     }
 

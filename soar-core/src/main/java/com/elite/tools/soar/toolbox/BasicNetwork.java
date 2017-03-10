@@ -17,6 +17,7 @@
 package com.elite.tools.soar.toolbox;
 
 import com.elite.tools.soar.*;
+import com.elite.tools.soar.exception.*;
 import com.google.common.base.Stopwatch;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -76,7 +77,7 @@ public class BasicNetwork implements Network {
     }
 
     @Override
-    public NetworkResponse performRequest(Request<?> request) throws SoarError {
+    public NetworkResponse performRequest(InnerRequest<?> request) throws SoarError {
         Stopwatch stopwatch = Stopwatch.createStarted();
         while (true) {
             HttpResponse httpResponse = null;
@@ -150,7 +151,7 @@ public class BasicNetwork implements Network {
                 }
                 if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY ||
                         statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-                    LOG.error("Request at {} has been redirected to {}", request.getOriginUrl(), request.getUrl());
+                    LOG.error("InnerRequest at {} has been redirected to {}", request.getOriginUrl(), request.getUrl());
                 } else {
                     LOG.error("Unexpected response code {} for {}", statusCode, request.getUrl());
                 }
@@ -179,7 +180,7 @@ public class BasicNetwork implements Network {
     /**
      * Logs requests that took over SLOW_REQUEST_THRESHOLD_MS to complete.
      */
-    private void logSlowRequests(long requestLifetime, Request<?> request,
+    private void logSlowRequests(long requestLifetime, InnerRequest<?> request,
                                  byte[] responseContents, StatusLine statusLine) {
         if (LOG.isDebugEnabled() || requestLifetime > SLOW_REQUEST_THRESHOLD_MS) {
             LOG.debug("HTTP response for request=<{}> [lifetime={}], [size={}], " +
@@ -198,7 +199,7 @@ public class BasicNetwork implements Network {
      * @param exception 当前抛出的异常
      * @throws SoarError 超过最大重试次数时的超时异常
      */
-    private static void attemptRetryOnException(String logPrefix, Request<?> request,
+    private static void attemptRetryOnException(String logPrefix, InnerRequest<?> request,
                                                 SoarError exception) throws SoarError {
         RetryPolicy retryPolicy = request.getRetryPolicy();
         int oldTimeout = request.getTimeoutMs();

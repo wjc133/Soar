@@ -1,5 +1,7 @@
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
+
 /**
  * Created by wjc133
  * Date: 2016/5/20
@@ -13,5 +15,5 @@ public interface Network {
      * @return 一个带有响应数据和缓存元数据的 {@link NetworkResponse}实例；永不为null
      * @throws SoarError 网络异常
      */
-    NetworkResponse performRequest(Request<?> request) throws SoarError;
+    NetworkResponse performRequest(InnerRequest<?> request) throws SoarError;
 }

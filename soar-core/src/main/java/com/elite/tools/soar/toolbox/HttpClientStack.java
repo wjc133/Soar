@@ -16,8 +16,8 @@
 
 package com.elite.tools.soar.toolbox;
 
-import com.elite.tools.soar.AuthFailureError;
-import com.elite.tools.soar.Request;
+import com.elite.tools.soar.exception.AuthFailureError;
+import com.elite.tools.soar.InnerRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -44,7 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.elite.tools.soar.Request.*;
+import static com.elite.tools.soar.InnerRequest.*;
 
 /**
  * An HttpStack that performs request over an {@link HttpClient}.
@@ -91,7 +91,7 @@ public class HttpClientStack implements HttpStack {
     }
 
     @Override
-    public HttpResponse performRequest(Request<?> request, Map<String, String> additionalHeaders)
+    public HttpResponse performRequest(InnerRequest<?> request, Map<String, String> additionalHeaders)
             throws IOException, AuthFailureError {
         HttpUriRequest httpRequest = createHttpRequest(request, additionalHeaders);
         addHeaders(httpRequest, additionalHeaders);
@@ -111,7 +111,7 @@ public class HttpClientStack implements HttpStack {
      * Creates the appropriate subclass of HttpUriRequest for passed in request.
      */
     @SuppressWarnings("deprecation")
-    /* protected */ static HttpUriRequest createHttpRequest(Request<?> request,
+    /* protected */ static HttpUriRequest createHttpRequest(InnerRequest<?> request,
                                                             Map<String, String> additionalHeaders) throws AuthFailureError {
         switch (request.getMethod()) {
             case Method.DEPRECATED_GET_OR_POST: {
@@ -164,7 +164,7 @@ public class HttpClientStack implements HttpStack {
     }
 
     private static void setEntityIfNonEmptyBody(HttpEntityEnclosingRequestBase httpRequest,
-                                                Request<?> request) throws AuthFailureError {
+                                                InnerRequest<?> request) throws AuthFailureError {
         byte[] body = request.getBody();
         if (body != null) {
             HttpEntity entity = new ByteArrayEntity(body);

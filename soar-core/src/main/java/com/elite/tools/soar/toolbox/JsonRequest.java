@@ -17,9 +17,9 @@
 package com.elite.tools.soar.toolbox;
 
 
+import com.elite.tools.soar.InnerRequest;
+import com.elite.tools.soar.InnerResponse;
 import com.elite.tools.soar.NetworkResponse;
-import com.elite.tools.soar.Request;
-import com.elite.tools.soar.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
  *
  * @param <T> JSON type of response expected
  */
-public abstract class JsonRequest<T> extends Request<T> {
+public abstract class JsonRequest<T> extends InnerRequest<T> {
     /**
      * Default charset for JSON request.
      */
@@ -43,7 +43,7 @@ public abstract class JsonRequest<T> extends Request<T> {
     private static final String PROTOCOL_CONTENT_TYPE =
             String.format("application/json; charset=%s", PROTOCOL_CHARSET);
 
-    private Response.Listener<T> mListener;
+    private InnerResponse.Listener<T> mListener;
     private final String mRequestBody;
 
     private static final Logger LOG = LoggerFactory.getLogger(JsonRequest.class);
@@ -52,15 +52,15 @@ public abstract class JsonRequest<T> extends Request<T> {
      * Deprecated constructor for a JsonRequest which defaults to GET unless {@link #getPostBody()}
      * or {@link #getPostParams()} is overridden (which defaults to POST).
      *
-     * @deprecated Use {@link #JsonRequest(int, String, String, Response.Listener, Response.ErrorListener)}.
+     * @deprecated Use {@link #JsonRequest(int, String, String, InnerResponse.Listener, InnerResponse.ErrorListener)}.
      */
-    public JsonRequest(String url, String requestBody, Response.Listener<T> listener,
-                       Response.ErrorListener errorListener) {
+    public JsonRequest(String url, String requestBody, InnerResponse.Listener<T> listener,
+                       InnerResponse.ErrorListener errorListener) {
         this(Method.DEPRECATED_GET_OR_POST, url, requestBody, listener, errorListener);
     }
 
-    public JsonRequest(int method, String url, String requestBody, Response.Listener<T> listener,
-                       Response.ErrorListener errorListener) {
+    public JsonRequest(int method, String url, String requestBody, InnerResponse.Listener<T> listener,
+                       InnerResponse.ErrorListener errorListener) {
         super(method, url, errorListener);
         mListener = listener;
         mRequestBody = requestBody;
@@ -80,7 +80,7 @@ public abstract class JsonRequest<T> extends Request<T> {
     }
 
     @Override
-    abstract protected Response<T> parseNetworkResponse(NetworkResponse response);
+    abstract protected InnerResponse<T> parseNetworkResponse(NetworkResponse response);
 
     /**
      * @deprecated Use {@link #getBodyContentType()}.

@@ -16,8 +16,8 @@
 
 package com.elite.tools.soar.toolbox;
 
-import com.elite.tools.soar.AuthFailureError;
-import com.elite.tools.soar.Request;
+import com.elite.tools.soar.exception.AuthFailureError;
+import com.elite.tools.soar.InnerRequest;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
@@ -35,10 +35,10 @@ public interface HttpStack {
      *
      * @param request the request to perform
      * @param additionalHeaders additional headers to be sent together with
-     *         {@link Request#getHeaders()}
+     *         {@link InnerRequest#getHeaders()}
      * @return the HTTP response
      */
-    public HttpResponse performRequest(Request<?> request, Map<String, String> additionalHeaders)
+    public HttpResponse performRequest(InnerRequest<?> request, Map<String, String> additionalHeaders)
         throws IOException, AuthFailureError;
 
 }

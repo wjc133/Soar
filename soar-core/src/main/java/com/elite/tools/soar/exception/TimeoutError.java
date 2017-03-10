@@ -1,3 +1,3 @@
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
 
 public class TimeoutError extends SoarError { }

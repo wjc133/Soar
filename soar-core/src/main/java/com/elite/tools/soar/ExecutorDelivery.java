@@ -16,6 +16,8 @@
 
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
+
 import java.util.concurrent.Executor;
 
 /**
@@ -47,29 +49,29 @@ public class ExecutorDelivery implements ResponseDelivery {
     }
 
     @Override
-    public void postResponse(Request<?> request, Response<?> response) {
+    public void postResponse(InnerRequest<?> request, InnerResponse<?> response) {
         postResponse(request, response, null);
     }
 
     @Override
-    public void postResponse(Request<?> request, Response<?> response, Runnable runnable) {
+    public void postResponse(InnerRequest<?> request, InnerResponse<?> response, Runnable runnable) {
         request.markDelivered();
         responsePoster.execute(new ResponseDeliveryRunnable(request, response, runnable));
     }
 
     @Override
-    public void postError(Request<?> request, SoarError error) {
-        Response<?> response = Response.error(error);
+    public void postError(InnerRequest<?> request, SoarError error) {
+        InnerResponse<?> response = InnerResponse.error(error);
         responsePoster.execute(new ResponseDeliveryRunnable(request, response, null));
     }
 
     @SuppressWarnings("rawtypes")
     private class ResponseDeliveryRunnable implements Runnable {
-        private final Request request;
-        private final Response response;
+        private final InnerRequest request;
+        private final InnerResponse response;
         private final Runnable runnable;
 
-        public ResponseDeliveryRunnable(Request request, Response response, Runnable runnable) {
+        public ResponseDeliveryRunnable(InnerRequest request, InnerResponse response, Runnable runnable) {
             this.request = request;
             this.response = response;
             this.runnable = runnable;

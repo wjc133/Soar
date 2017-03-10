@@ -16,6 +16,7 @@
 
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
 import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public class NetworkDispatcher extends Thread {
     /**
      * 需要被处理请求的队列
      */
-    private final BlockingQueue<Request<?>> mQueue;
+    private final BlockingQueue<InnerRequest<?>> mQueue;
     /**
      * 用来处理请求的Network实例
      */
@@ -61,7 +62,7 @@ public class NetworkDispatcher extends Thread {
      * @param cache    用于写入响应值的缓存
      * @param delivery 用于返回响应值或错误
      */
-    public NetworkDispatcher(BlockingQueue<Request<?>> queue,
+    public NetworkDispatcher(BlockingQueue<InnerRequest<?>> queue,
                              Network network, Cache cache,
                              ResponseDelivery delivery) {
         mQueue = queue;
@@ -81,7 +82,7 @@ public class NetworkDispatcher extends Thread {
 
     @Override
     public void run() {
-        Request<?> request;
+        InnerRequest<?> request;
         while (true) {
             Stopwatch stopwatch = Stopwatch.createStarted();
             // release previous request object to avoid leaking request object when mQueue is drained.
@@ -115,7 +116,7 @@ public class NetworkDispatcher extends Thread {
                 }
 
                 // 解析响应值
-                Response<?> response = request.parseNetworkResponse(networkResponse);
+                InnerResponse<?> response = request.parseNetworkResponse(networkResponse);
 
                 // 写入缓存
                 // TODO: 304时，应该只缓存元数据metadata，而不是整个返回值数据
@@ -144,7 +145,7 @@ public class NetworkDispatcher extends Thread {
         }
     }
 
-    private void parseAndDeliverNetworkError(Request<?> request, SoarError error) {
+    private void parseAndDeliverNetworkError(InnerRequest<?> request, SoarError error) {
         error = request.parseNetworkError(error);
         mDelivery.postError(request, error);
     }

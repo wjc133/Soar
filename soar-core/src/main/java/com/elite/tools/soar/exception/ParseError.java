@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
+
+import com.elite.tools.soar.NetworkResponse;
 
 /**
- * Error indicating that no connection could be established when performing a Volley request.
+ * Indicates that the server's response could not be parsed.
  */
 @SuppressWarnings("serial")
-public class NoConnectionError extends NetworkError {
-    public NoConnectionError() {
-        super();
+public class ParseError extends SoarError {
+    public ParseError() {
     }
 
-    public NoConnectionError(Throwable reason) {
-        super(reason);
+    public ParseError(NetworkResponse networkResponse) {
+        super(networkResponse);
+    }
+
+    public ParseError(Throwable cause) {
+        super(cause);
     }
 }

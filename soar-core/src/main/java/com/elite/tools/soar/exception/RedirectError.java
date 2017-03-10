@@ -1,4 +1,6 @@
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
+
+import com.elite.tools.soar.NetworkResponse;
 
 /**
  * Indicates that there was a redirection.

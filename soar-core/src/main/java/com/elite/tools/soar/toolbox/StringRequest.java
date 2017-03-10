@@ -16,28 +16,28 @@
 
 package com.elite.tools.soar.toolbox;
 
+import com.elite.tools.soar.InnerResponse;
 import com.elite.tools.soar.NetworkResponse;
-import com.elite.tools.soar.Request;
-import com.elite.tools.soar.Response;
+import com.elite.tools.soar.InnerRequest;
 
 import java.io.UnsupportedEncodingException;
 
 /**
  * A canned request for retrieving the response body at a given URL as a String.
  */
-public class StringRequest extends Request<String> {
-    private Response.Listener<String> mListener;
+public class StringRequest extends InnerRequest<String> {
+    private InnerResponse.Listener<String> mListener;
 
     /**
      * Creates a new request with the given method.
      *
-     * @param method        the request {@link com.elite.tools.soar.Request.Method} to use
+     * @param method        the request {@link InnerRequest.Method} to use
      * @param url           URL to fetch the string at
      * @param listener      Listener to receive the String response
      * @param errorListener Error listener, or null to ignore errors
      */
-    public StringRequest(int method, String url, Response.Listener<String> listener,
-                         Response.ErrorListener errorListener) {
+    public StringRequest(int method, String url, InnerResponse.Listener<String> listener,
+                         InnerResponse.ErrorListener errorListener) {
         super(method, url, errorListener);
         mListener = listener;
     }
@@ -49,7 +49,7 @@ public class StringRequest extends Request<String> {
      * @param listener      Listener to receive the String response
      * @param errorListener Error listener, or null to ignore errors
      */
-    public StringRequest(String url, Response.Listener<String> listener, Response.ErrorListener errorListener) {
+    public StringRequest(String url, InnerResponse.Listener<String> listener, InnerResponse.ErrorListener errorListener) {
         this(Method.GET, url, listener, errorListener);
     }
 
@@ -67,13 +67,13 @@ public class StringRequest extends Request<String> {
     }
 
     @Override
-    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+    protected InnerResponse<String> parseNetworkResponse(NetworkResponse response) {
         String parsed;
         try {
             parsed = new String(response.data, HttpHeaderParser.parseCharset(response.headers));
         } catch (UnsupportedEncodingException e) {
             parsed = new String(response.data);
         }
-        return Response.success(parsed, HttpHeaderParser.parseCacheHeaders(response));
+        return InnerResponse.success(parsed, HttpHeaderParser.parseCacheHeaders(response));
     }
 }

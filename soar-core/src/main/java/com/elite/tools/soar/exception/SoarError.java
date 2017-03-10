@@ -1,4 +1,6 @@
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
+
+import com.elite.tools.soar.NetworkResponse;
 
 public class SoarError extends Exception {
     public final NetworkResponse networkResponse;
@@ -27,7 +29,7 @@ public class SoarError extends Exception {
         networkResponse = null;
     }
 
-    /* package */ void setNetworkTimeMs(long networkTimeMs) {
+    public void setNetworkTimeMs(long networkTimeMs) {
        this.networkTimeMs = networkTimeMs;
     }
 

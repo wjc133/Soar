@@ -35,12 +35,12 @@ public class CacheDispatcher extends Thread {
     /**
      * The queue of requests coming in for triage.
      */
-    private final BlockingQueue<Request<?>> mCacheQueue;
+    private final BlockingQueue<InnerRequest<?>> mCacheQueue;
 
     /**
      * The queue of requests going out to the network.
      */
-    private final BlockingQueue<Request<?>> mNetworkQueue;
+    private final BlockingQueue<InnerRequest<?>> mNetworkQueue;
 
     /**
      * The cache to read from.
@@ -68,7 +68,7 @@ public class CacheDispatcher extends Thread {
      * @param delivery     Delivery interface to use for posting responses
      */
     public CacheDispatcher(
-            BlockingQueue<Request<?>> cacheQueue, BlockingQueue<Request<?>> networkQueue,
+            BlockingQueue<InnerRequest<?>> cacheQueue, BlockingQueue<InnerRequest<?>> networkQueue,
             Cache cache, ResponseDelivery delivery) {
         mCacheQueue = cacheQueue;
         mNetworkQueue = networkQueue;
@@ -92,7 +92,7 @@ public class CacheDispatcher extends Thread {
         // Make a blocking call to initialize the cache.
         mCache.initialize();
 
-        Request<?> request;
+        InnerRequest<?> request;
         while (true) {
             // release previous request object to avoid leaking request object when mQueue is drained.
             request = null;
@@ -130,7 +130,7 @@ public class CacheDispatcher extends Thread {
                 }
 
                 // We have a cache hit; parse its data for delivery back to the request.
-                Response<?> response = request.parseNetworkResponse(
+                InnerResponse<?> response = request.parseNetworkResponse(
                         new NetworkResponse(entry.data, entry.responseHeaders));
                 LOG.debug("cache-hit-parsed");
 
@@ -149,7 +149,7 @@ public class CacheDispatcher extends Thread {
 
                     // Post the intermediate response back to the user and have
                     // the delivery then forward the request along to the network.
-                    final Request<?> finalRequest = request;
+                    final InnerRequest<?> finalRequest = request;
                     mDelivery.postResponse(request, response, new Runnable() {
                         @Override
                         public void run() {

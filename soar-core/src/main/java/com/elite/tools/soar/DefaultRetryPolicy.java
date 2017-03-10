@@ -16,6 +16,8 @@
 
 package com.elite.tools.soar;
 
+import com.elite.tools.soar.exception.SoarError;
+
 /**
  * Default retry policy for requests.
  */

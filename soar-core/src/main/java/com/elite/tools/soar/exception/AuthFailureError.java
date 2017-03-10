@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-package com.elite.tools.soar;
+package com.elite.tools.soar.exception;
+
+
+import com.elite.tools.soar.NetworkResponse;
 
 /**
- * Indicates that the server responded with an error response.
+ * Error indicating that there was an authentication failure when performing a InnerRequest.
  */
 @SuppressWarnings("serial")
-public class ServerError extends SoarError {
-    public ServerError(NetworkResponse networkResponse) {
-        super(networkResponse);
+public class AuthFailureError extends SoarError {
+
+    public AuthFailureError() { }
+
+    public AuthFailureError(NetworkResponse response) {
+        super(response);
     }
 
-    public ServerError() {
-        super();
+    public AuthFailureError(String message) {
+        super(message);
     }
+
+    public AuthFailureError(String message, Exception reason) {
+        super(message, reason);
+    }
+
 }
-

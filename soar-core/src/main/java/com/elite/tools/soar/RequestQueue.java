@@ -20,7 +20,7 @@ public class RequestQueue {
     /** Callback interface for completed requests. */
     public static interface RequestFinishedListener<T> {
         /** Called when a request has finished processing. */
-        void onRequestFinished(Request<T> request);
+        void onRequestFinished(InnerRequest<T> request);
     }
 
     /** Used for generating monotonically-increasing sequence numbers for requests. */
@@ -37,23 +37,23 @@ public class RequestQueue {
      *     如果没有请求，则为当前key设置null.</li>
      * </ul>
      */
-    private final Map<String, Queue<Request<?>>> mWaitingRequests =
-            new HashMap<String, Queue<Request<?>>>();
+    private final Map<String, Queue<InnerRequest<?>>> mWaitingRequests =
+            new HashMap<String, Queue<InnerRequest<?>>>();
 
     /**
-     * The set of all requests currently being processed by this RequestQueue. A Request
+     * The set of all requests currently being processed by this RequestQueue. A InnerRequest
      * will be in this set if it is waiting in any queue or currently being processed by
      * any dispatcher.
      */
-    private final Set<Request<?>> mCurrentRequests = new HashSet<Request<?>>();
+    private final Set<InnerRequest<?>> mCurrentRequests = new HashSet<InnerRequest<?>>();
 
     /** The cache triage queue. */
-    private final PriorityBlockingQueue<Request<?>> mCacheQueue =
-            new PriorityBlockingQueue<Request<?>>();
+    private final PriorityBlockingQueue<InnerRequest<?>> mCacheQueue =
+            new PriorityBlockingQueue<InnerRequest<?>>();
 
     /** The queue of requests that are actually going out to the network. */
-    private final PriorityBlockingQueue<Request<?>> mNetworkQueue =
-            new PriorityBlockingQueue<Request<?>>();
+    private final PriorityBlockingQueue<InnerRequest<?>> mNetworkQueue =
+            new PriorityBlockingQueue<InnerRequest<?>>();
 
     /** Number of network request dispatcher threads to start. */
     private static final int DEFAULT_NETWORK_THREAD_POOL_SIZE = 4;
@@ -64,7 +64,7 @@ public class RequestQueue {
     /** Network interface for performing requests. */
     private final Network mNetwork;
 
-    /** Response delivery mechanism. */
+    /** InnerResponse delivery mechanism. */
     private final ResponseDelivery mDelivery;
 
     /** The network dispatchers. */
@@ -164,7 +164,7 @@ public class RequestQueue {
      * 网络请求拦截器，用于{@link RequestQueue#cancelAll(RequestFilter)}方法。
      */
     public interface RequestFilter {
-        public boolean apply(Request<?> request);
+        public boolean apply(InnerRequest<?> request);
     }
 
     /**
@@ -173,7 +173,7 @@ public class RequestQueue {
      */
     public void cancelAll(RequestFilter filter) {
         synchronized (mCurrentRequests) {
-            for (Request<?> request : mCurrentRequests) {
+            for (InnerRequest<?> request : mCurrentRequests) {
                 if (filter.apply(request)) {
                     request.cancel();
                 }
@@ -190,7 +190,7 @@ public class RequestQueue {
         }
         cancelAll(new RequestFilter() {
             @Override
-            public boolean apply(Request<?> request) {
+            public boolean apply(InnerRequest<?> request) {
                 return request.getTag() == tag;
             }
         });
@@ -201,7 +201,7 @@ public class RequestQueue {
      * @param request 待处理请求
      * @return 已经被添加到执行队列中了的请求
      */
-    public <T> Request<T> add(Request<T> request) {
+    public <T> InnerRequest<T> add(InnerRequest<T> request) {
         // 标记当前请求属于该队列，并添加到Set集中
         request.setRequestQueue(this);
         synchronized (mCurrentRequests) {
@@ -222,14 +222,14 @@ public class RequestQueue {
             String cacheKey = request.getCacheKey();
             if (mWaitingRequests.containsKey(cacheKey)) {
                 // 已经有一个相同的请求正在处理. Queue up.
-                Queue<Request<?>> stagedRequests = mWaitingRequests.get(cacheKey);
+                Queue<InnerRequest<?>> stagedRequests = mWaitingRequests.get(cacheKey);
                 if (stagedRequests == null) {
-                    stagedRequests = new LinkedList<Request<?>>();
+                    stagedRequests = new LinkedList<InnerRequest<?>>();
                 }
                 stagedRequests.add(request);
                 mWaitingRequests.put(cacheKey, stagedRequests);
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug("Request for cacheKey={} is in flight, putting on hold.", cacheKey);
+                    LOG.debug("InnerRequest for cacheKey={} is in flight, putting on hold.", cacheKey);
                 }
             } else {
                 // Insert 'null' queue for this cacheKey, indicating there is now a request in
@@ -242,13 +242,13 @@ public class RequestQueue {
     }
 
     /**
-     * Called from {@link Request#finish(String)}, indicating that processing of the given request
+     * Called from {@link InnerRequest#finish(String)}, indicating that processing of the given request
      * has finished.
      *
      * <p>Releases waiting requests for <code>request.getCacheKey()</code> if
      *      <code>request.shouldCache()</code>.</p>
      */
-    <T> void finish(Request<T> request) {
+    <T> void finish(InnerRequest<T> request) {
         // Remove from the set of requests currently being processed.
         synchronized (mCurrentRequests) {
             mCurrentRequests.remove(request);
@@ -263,7 +263,7 @@ public class RequestQueue {
         if (request.shouldCache()) {
             synchronized (mWaitingRequests) {
                 String cacheKey = request.getCacheKey();
-                Queue<Request<?>> waitingRequests = mWaitingRequests.remove(cacheKey);
+                Queue<InnerRequest<?>> waitingRequests = mWaitingRequests.remove(cacheKey);
                 if (waitingRequests != null) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("Releasing {} waiting requests for cacheKey={}.",
