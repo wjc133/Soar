@@ -38,7 +38,7 @@ public class Soar {
      * @return A started {@link RequestQueue} instance.
      */
     public static RequestQueue newRequestQueue(HttpStack stack, int maxDiskCacheBytes) {
-        File cacheDir = new File(SystemPathGetter.INSTANCE.getRootPath(), DEFAULT_CACHE_DIR);
+        File cacheDir = new File(SystemPathFetcher.INSTANCE.getRootPath(), DEFAULT_CACHE_DIR);
 
         if (stack == null) {
             stack = new HttpClientStack(HttpClients.createDefault());

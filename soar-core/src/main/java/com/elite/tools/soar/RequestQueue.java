@@ -27,13 +27,14 @@ public class RequestQueue {
     private AtomicInteger mSequenceGenerator = new AtomicInteger();
 
     /**
-     * Staging area for requests that already have a duplicate request in flight.
+     * 该Map是对相同请求的暂存区域
+     * 假设现在有一个正在等待执行的请求，如果后面来了相同的请求，则将他们都放到一个队列中去，请求执行完成后，剩余请求可以
+     * 直接返回缓存结果。
      *
      * <ul>
-     *     <li>containsKey(cacheKey) indicates that there is a request in flight for the given cache
-     *          key.</li>
-     *     <li>get(cacheKey) returns waiting requests for the given cache key. The in flight request
-     *          is <em>not</em> contained in that list. Is null if no requests are staged.</li>
+     *     <li>containsKey(cacheKey) 用于判断给定cache key的请求是否正在等待执行。</li>
+     *     <li>get(cacheKey) 返回指定cache key的等待队列。注意：正在执行的请求<em>不在</em>队列中。
+     *     如果没有请求，则为当前key设置null.</li>
      * </ul>
      */
     private final Map<String, Queue<Request<?>>> mWaitingRequests =
@@ -117,12 +118,12 @@ public class RequestQueue {
      * Starts the dispatchers in this queue.
      */
     public void start() {
-        stop();  // Make sure any currently running dispatchers are stopped.
-        // Create the cache dispatcher and start it.
+        stop();  // 需要确保当前队列已停止
+        // 创建新的缓存调度器并启动它
         mCacheDispatcher = new CacheDispatcher(mCacheQueue, mNetworkQueue, mCache, mDelivery);
         mCacheDispatcher.start();
 
-        // Create network dispatchers (and corresponding threads) up to the pool size.
+        // 创建一系列的网络调度器（及其线程），以达到线程池大小
         for (int i = 0; i < mDispatchers.length; i++) {
             NetworkDispatcher networkDispatcher = new NetworkDispatcher(mNetworkQueue, mNetwork,
                     mCache, mDelivery);
@@ -132,7 +133,7 @@ public class RequestQueue {
     }
 
     /**
-     * Stops the cache and network dispatchers.
+     * 停止缓存调度和网络调度
      */
     public void stop() {
         if (mCacheDispatcher != null) {
@@ -146,22 +147,21 @@ public class RequestQueue {
     }
 
     /**
-     * Gets a sequence number.
+     * 为请求生成序列号
      */
     public int getSequenceNumber() {
         return mSequenceGenerator.incrementAndGet();
     }
 
     /**
-     * Gets the {@link Cache} instance being used.
+     * 获取{@link Cache}实例
      */
     public Cache getCache() {
         return mCache;
     }
 
     /**
-     * A simple predicate or filter interface for Requests, for use by
-     * {@link RequestQueue#cancelAll(RequestFilter)}.
+     * 网络请求拦截器，用于{@link RequestQueue#cancelAll(RequestFilter)}方法。
      */
     public interface RequestFilter {
         public boolean apply(Request<?> request);
@@ -182,8 +182,7 @@ public class RequestQueue {
     }
 
     /**
-     * Cancels all requests in this queue with the given tag. Tag must be non-null
-     * and equality is by identity.
+     * 根据指定的tag取消请求。tag不能为空。
      */
     public void cancelAll(final Object tag) {
         if (tag == null) {
@@ -198,21 +197,21 @@ public class RequestQueue {
     }
 
     /**
-     * Adds a Request to the dispatch queue.
-     * @param request The request to service
-     * @return The passed-in request
+     * 将请求加入到调度队列
+     * @param request 待处理请求
+     * @return 已经被添加到执行队列中了的请求
      */
     public <T> Request<T> add(Request<T> request) {
-        // Tag the request as belonging to this queue and add it to the set of current requests.
+        // 标记当前请求属于该队列，并添加到Set集中
         request.setRequestQueue(this);
         synchronized (mCurrentRequests) {
             mCurrentRequests.add(request);
         }
 
-        // Process requests in the order they are added.
+        // 为请求设置序号
         request.setSequence(getSequenceNumber());
 
-        // If the request is uncacheable, skip the cache queue and go straight to the network.
+        // 不需要缓存则直接跳过缓存
         if (!request.shouldCache()) {
             mNetworkQueue.add(request);
             return request;
@@ -222,7 +221,7 @@ public class RequestQueue {
         synchronized (mWaitingRequests) {
             String cacheKey = request.getCacheKey();
             if (mWaitingRequests.containsKey(cacheKey)) {
-                // There is already a request in flight. Queue up.
+                // 已经有一个相同的请求正在处理. Queue up.
                 Queue<Request<?>> stagedRequests = mWaitingRequests.get(cacheKey);
                 if (stagedRequests == null) {
                     stagedRequests = new LinkedList<Request<?>>();
@@ -260,6 +259,7 @@ public class RequestQueue {
             }
         }
 
+        //释放相同请求，并加入到缓存队列中，此时可确保请求能直接返回缓存结果
         if (request.shouldCache()) {
             synchronized (mWaitingRequests) {
                 String cacheKey = request.getCacheKey();

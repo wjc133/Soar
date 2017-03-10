@@ -60,8 +60,7 @@ public class CacheDispatcher extends Thread {
     private static final Logger LOG = LoggerFactory.getLogger(CacheDispatcher.class);
 
     /**
-     * Creates a new cache triage dispatcher thread.  You must call {@link #start()}
-     * in order to begin processing.
+     * 创建一个缓存分流调度器线程。你必须调用{@link #start()}来开始处理逻辑。
      *
      * @param cacheQueue   Queue of incoming requests for triage
      * @param networkQueue Queue to post requests that require network to

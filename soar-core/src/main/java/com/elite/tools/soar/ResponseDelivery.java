@@ -18,18 +18,17 @@ package com.elite.tools.soar;
 
 public interface ResponseDelivery {
     /**
-     * Parses a response from the network or cache and delivers it.
+     * 解析并分发一个网络请求或者缓存请求。
      */
-    public void postResponse(Request<?> request, Response<?> response);
+    void postResponse(Request<?> request, Response<?> response);
 
     /**
-     * Parses a response from the network or cache and delivers it. The provided
-     * Runnable will be executed after delivery.
+     * 解析并分发一个网络请求或者缓存请求。并在分发完成后执行runnable内容。
      */
-    public void postResponse(Request<?> request, Response<?> response, Runnable runnable);
+    void postResponse(Request<?> request, Response<?> response, Runnable runnable);
 
     /**
-     * Posts an error for the given request.
+     * 向对应request分发一个网络错误。
      */
-    public void postError(Request<?> request, SoarError error);
+    void postError(Request<?> request, SoarError error);
 }

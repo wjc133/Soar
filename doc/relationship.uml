@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.elite.tools.soar.RequestQueue</OriginalElement>
+  <nodes>
+    <node x="438.14743265993263" y="0.0">com.elite.tools.soar.ResponseDelivery</node>
+    <node x="229.83207070707067" y="120.0">com.elite.tools.soar.CacheDispatcher</node>
+    <node x="824.8320707070707" y="120.0">com.elite.tools.soar.toolbox.HttpClientStack</node>
+    <node x="646.9154040404039" y="0.0">com.elite.tools.soar.Network</node>
+    <node x="543.8320707070707" y="120.0">com.elite.tools.soar.ExecutorDelivery</node>
+    <node x="183.00147306397304" y="0.0">com.elite.tools.soar.Cache</node>
+    <node x="692.8320707070707" y="120.0">com.elite.tools.soar.toolbox.BasicNetwork</node>
+    <node x="378.83207070707067" y="120.0">com.elite.tools.soar.NetworkDispatcher</node>
+    <node x="516.0" y="230.0">com.elite.tools.soar.NetworkResponse</node>
+    <node x="270.4073232323232" y="230.0">com.elite.tools.soar.RequestQueue</node>
+    <node x="0.0" y="0.0">com.elite.tools.soar.Request</node>
+    <node x="81.83207070707067" y="120.0">com.elite.tools.soar.toolbox.DiskBasedCache</node>
+    <node x="785.5767255892256" y="0.0">com.elite.tools.soar.toolbox.HttpStack</node>
+    <node x="407.0" y="230.0">com.elite.tools.soar.Response</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.elite.tools.soar.toolbox.BasicNetwork" target="com.elite.tools.soar.NetworkResponse">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.NetworkDispatcher" target="com.elite.tools.soar.ResponseDelivery">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.ExecutorDelivery">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.NetworkDispatcher">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.CacheDispatcher">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.ResponseDelivery">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.Cache">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.NetworkDispatcher" target="com.elite.tools.soar.Cache">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.Request" target="com.elite.tools.soar.RequestQueue">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.NetworkDispatcher" target="com.elite.tools.soar.Request">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.CacheDispatcher" target="com.elite.tools.soar.ResponseDelivery">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.Network">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.CacheDispatcher" target="com.elite.tools.soar.Request">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.toolbox.HttpClientStack" target="com.elite.tools.soar.toolbox.HttpStack">
+      <point x="0.0" y="-15.0" />
+      <point x="884.8320707070707" y="100.0" />
+      <point x="851.5767255892256" y="100.0" />
+      <point x="22.0" y="15.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.toolbox.BasicNetwork" target="com.elite.tools.soar.Network">
+      <point x="-28.0" y="-15.0" />
+      <point x="720.8320707070707" y="100.0" />
+      <point x="715.2487373737374" y="100.0" />
+      <point x="27.33333333333337" y="15.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.toolbox.BasicNetwork" target="com.elite.tools.soar.toolbox.HttpStack">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.ExecutorDelivery" target="com.elite.tools.soar.ResponseDelivery">
+      <point x="0.0" y="-15.0" />
+      <point x="607.8320707070707" y="90.0" />
+      <point x="556.2724326599326" y="90.0" />
+      <point x="50.625" y="15.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.CacheDispatcher" target="com.elite.tools.soar.Cache">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.toolbox.DiskBasedCache" target="com.elite.tools.soar.Cache">
+      <point x="0.0" y="-15.0" />
+      <point x="145.83207070707067" y="100.0" />
+      <point x="208.12647306397304" y="100.0" />
+      <point x="-8.375" y="15.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.CacheDispatcher" target="com.elite.tools.soar.NetworkResponse">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.RequestQueue" target="com.elite.tools.soar.Request">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.elite.tools.soar.NetworkDispatcher" target="com.elite.tools.soar.Network">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="472.5" y="130.5" />
+  <SelectedNodes>
+    <node>com.elite.tools.soar.Response</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>public</VISIBILITY>
+</Diagram>
+

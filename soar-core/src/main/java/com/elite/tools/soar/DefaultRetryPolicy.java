@@ -20,40 +20,40 @@ package com.elite.tools.soar;
  * Default retry policy for requests.
  */
 public class DefaultRetryPolicy implements RetryPolicy {
-    /** The current timeout in milliseconds. */
+    /** 当前超时时间 */
     private int mCurrentTimeoutMs;
 
-    /** The current retry count. */
+    /** 当前重试次数 */
     private int mCurrentRetryCount;
 
-    /** The maximum number of attempts. */
+    /** 最大重试次数 */
     private final int mMaxNumRetries;
 
-    /** The backoff multiplier for the policy. */
+    /** 策略的退避因数，用于控制重试的时间间隔 */
     private final float mBackoffMultiplier;
 
-    /** The default socket timeout in milliseconds */
+    /** 默认的Socket超时时间 */
     public static final int DEFAULT_TIMEOUT_MS = 2500;
 
-    /** The default number of retries */
+    /** 默认最大重试次数 */
     public static final int DEFAULT_MAX_RETRIES = 0;
 
-    /** The default backoff multiplier */
+    /** 默认退避因数 */
     public static final float DEFAULT_BACKOFF_MULT = 1f;
 
 
     /**
-     * Constructs a new retry policy using the default timeouts.
+     * 全部使用默认timeout构造
      */
     public DefaultRetryPolicy() {
         this(DEFAULT_TIMEOUT_MS, DEFAULT_MAX_RETRIES, DEFAULT_BACKOFF_MULT);
     }
 
     /**
-     * Constructs a new retry policy.
-     * @param initialTimeoutMs The initial timeout for the policy.
-     * @param maxNumRetries The maximum number of retries.
-     * @param backoffMultiplier Backoff multiplier for the policy.
+     * 构造一个新的retry policy实例。
+     * @param initialTimeoutMs 初始超时时间
+     * @param maxNumRetries 最大重试次数
+     * @param backoffMultiplier 退避因数
      */
     public DefaultRetryPolicy(int initialTimeoutMs, int maxNumRetries, float backoffMultiplier) {
         mCurrentTimeoutMs = initialTimeoutMs;
@@ -62,7 +62,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
     }
 
     /**
-     * Returns the current timeout.
+     * 返回当前超时时间
      */
     @Override
     public int getCurrentTimeout() {
@@ -70,7 +70,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
     }
 
     /**
-     * Returns the current retry count.
+     * 返回当前重试次数
      */
     @Override
     public int getCurrentRetryCount() {
@@ -78,7 +78,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
     }
 
     /**
-     * Returns the backoff multiplier for the policy.
+     * 返回退避因数
      */
     public float getBackoffMultiplier() {
         return mBackoffMultiplier;
@@ -86,7 +86,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
 
     /**
      * Prepares for the next retry by applying a backoff to the timeout.
-     * @param error The error code of the last attempt.
+     * @param error 上次尝试抛出的异常
      */
     @Override
     public void retry(SoarError error) throws SoarError {
@@ -98,7 +98,7 @@ public class DefaultRetryPolicy implements RetryPolicy {
     }
 
     /**
-     * Returns true if this policy has attempts remaining, false otherwise.
+     * 返回是否还有剩余尝试次数
      */
     protected boolean hasAttemptRemaining() {
         return mCurrentRetryCount <= mMaxNumRetries;

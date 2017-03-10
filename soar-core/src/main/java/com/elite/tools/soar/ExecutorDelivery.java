@@ -19,18 +19,18 @@ package com.elite.tools.soar;
 import java.util.concurrent.Executor;
 
 /**
- * Delivers responses and errors.
+ * 响应分发器，用于分发响应值和错误。
  */
 public class ExecutorDelivery implements ResponseDelivery {
-    /** Used for posting responses, typically to the main thread. */
-    private final Executor mResponsePoster;
+    /** 用于分发响应值 */
+    private final Executor responsePoster;
 
     /**
-     * Creates a new response delivery interface.
+     * 构造方法，创建一个新的ExecutorDelivery实例。
      */
     public ExecutorDelivery() {
-        // Make an Executor that just wraps the handler.
-        mResponsePoster = new Executor() {
+        // 初始化一个Executor，仅用于简单执行command
+        responsePoster = new Executor() {
             @Override
             public void execute(Runnable command) {
                 command.run();
@@ -39,12 +39,11 @@ public class ExecutorDelivery implements ResponseDelivery {
     }
 
     /**
-     * Creates a new response delivery interface, mockable version
-     * for testing.
-     * @param executor For running delivery tasks
+     * 使用指定的Executor创建实例
+     * @param executor 用于执行分发任务的Executor
      */
     public ExecutorDelivery(Executor executor) {
-        mResponsePoster = executor;
+        responsePoster = executor;
     }
 
     @Override
@@ -55,57 +54,52 @@ public class ExecutorDelivery implements ResponseDelivery {
     @Override
     public void postResponse(Request<?> request, Response<?> response, Runnable runnable) {
         request.markDelivered();
-        mResponsePoster.execute(new ResponseDeliveryRunnable(request, response, runnable));
+        responsePoster.execute(new ResponseDeliveryRunnable(request, response, runnable));
     }
 
     @Override
     public void postError(Request<?> request, SoarError error) {
         Response<?> response = Response.error(error);
-        mResponsePoster.execute(new ResponseDeliveryRunnable(request, response, null));
+        responsePoster.execute(new ResponseDeliveryRunnable(request, response, null));
     }
 
-    /**
-     * A Runnable used for delivering network responses to a listener on the
-     * main thread.
-     */
     @SuppressWarnings("rawtypes")
     private class ResponseDeliveryRunnable implements Runnable {
-        private final Request mRequest;
-        private final Response mResponse;
-        private final Runnable mRunnable;
+        private final Request request;
+        private final Response response;
+        private final Runnable runnable;
 
         public ResponseDeliveryRunnable(Request request, Response response, Runnable runnable) {
-            mRequest = request;
-            mResponse = response;
-            mRunnable = runnable;
+            this.request = request;
+            this.response = response;
+            this.runnable = runnable;
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public void run() {
-            // If this request has canceled, finish it and don't deliver.
-            if (mRequest.isCanceled()) {
-                mRequest.finish("canceled-at-delivery");
+            // 如果请求已经被取消了，打上个标记，不分发了。
+            if (request.isCanceled()) {
+                request.finish("canceled-at-delivery");
                 return;
             }
 
-            // Deliver a normal response or error, depending.
-            if (mResponse.isSuccess()) {
-                mRequest.deliverResponse(mResponse.result);
+            // 根据响应值是否成功决定分发响应值还是错误
+            if (response.isSuccess()) {
+                request.deliverResponse(response.result);
             } else {
-                mRequest.deliverError(mResponse.error);
+                request.deliverError(response.error);
             }
 
-            // If this is an intermediate response, add a marker, otherwise we're done
-            // and the request can be finished.
-            if (mResponse.intermediate) {
+            // 如果响应值是一个中间值，则应该做标记；否则就是正常返回
+            if (response.intermediate) {
             } else {
-                mRequest.finish("done");
+                request.finish("done");
             }
 
-            // If we have been provided a post-delivery runnable, run it.
-            if (mRunnable != null) {
-                mRunnable.run();
+            // 分发后执行的动作
+            if (runnable != null) {
+                runnable.run();
             }
        }
     }

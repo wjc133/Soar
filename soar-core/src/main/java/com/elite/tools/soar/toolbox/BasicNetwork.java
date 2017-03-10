@@ -17,6 +17,7 @@
 package com.elite.tools.soar.toolbox;
 
 import com.elite.tools.soar.*;
+import com.google.common.base.Stopwatch;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -36,15 +37,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A network performing Volley requests over an {@link HttpStack}.
  */
 public class BasicNetwork implements Network {
     private static final Logger LOG = LoggerFactory.getLogger(BasicNetwork.class);
-
+    /**
+     * 慢请求时间阈值（毫秒）
+     */
     private static int SLOW_REQUEST_THRESHOLD_MS = 3000;
-
+    /**
+     * 默认ByteArrayPool大小
+     */
     private static int DEFAULT_POOL_SIZE = 4096;
 
     protected final HttpStack mHttpStack;
@@ -62,7 +68,7 @@ public class BasicNetwork implements Network {
 
     /**
      * @param httpStack HTTP stack to be used
-     * @param pool a buffer pool that improves GC performance in copy operations
+     * @param pool      a buffer pool that improves GC performance in copy operations
      */
     public BasicNetwork(HttpStack httpStack, ByteArrayPool pool) {
         mHttpStack = httpStack;
@@ -71,7 +77,7 @@ public class BasicNetwork implements Network {
 
     @Override
     public NetworkResponse performRequest(Request<?> request) throws SoarError {
-        long requestStart = System.currentTimeMillis();
+        Stopwatch stopwatch = Stopwatch.createStarted();
         while (true) {
             HttpResponse httpResponse = null;
             byte[] responseContents = null;
@@ -80,19 +86,20 @@ public class BasicNetwork implements Network {
                 // Gather headers.
                 Map<String, String> headers = new HashMap<String, String>();
                 addCacheHeaders(headers, request.getCacheEntry());
+
                 httpResponse = mHttpStack.performRequest(request, headers);
                 StatusLine statusLine = httpResponse.getStatusLine();
                 int statusCode = statusLine.getStatusCode();
 
                 responseHeaders = convertHeaders(httpResponse.getAllHeaders());
-                // Handle cache validation.
+                // 处理缓存验证
                 if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
 
                     Cache.Entry entry = request.getCacheEntry();
                     if (entry == null) {
                         return new NetworkResponse(HttpStatus.SC_NOT_MODIFIED, null,
                                 responseHeaders, true,
-                                System.currentTimeMillis() - requestStart);
+                                stopwatch.elapsed(TimeUnit.MILLISECONDS));
                     }
 
                     // A HTTP 304 response does not have all header fields. We
@@ -102,33 +109,31 @@ public class BasicNetwork implements Network {
                     entry.responseHeaders.putAll(responseHeaders);
                     return new NetworkResponse(HttpStatus.SC_NOT_MODIFIED, entry.data,
                             entry.responseHeaders, true,
-                            System.currentTimeMillis() - requestStart);
+                            stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 }
-                
-                // Handle moved resources
+
+                // 处理资源转移（重定向）
                 if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-                	String newUrl = responseHeaders.get("Location");
-                	request.setRedirectUrl(newUrl);
+                    String newUrl = responseHeaders.get("Location");
+                    request.setRedirectUrl(newUrl);
                 }
 
-                // Some responses such as 204s do not have content.  We must check.
+                // 类似于204这种响应(No Content)是没有返回数据的，因此需要验证
                 if (httpResponse.getEntity() != null) {
-                  responseContents = entityToBytes(httpResponse.getEntity());
+                    responseContents = entityToBytes(httpResponse.getEntity());
                 } else {
-                  // Add 0 byte response as a way of honestly representing a
-                  // no-content request.
-                  responseContents = new byte[0];
+                    responseContents = new byte[0];
                 }
 
-                // if the request is slow, log it.
-                long requestLifetime = System.currentTimeMillis() - requestStart;
+                // 打印过慢请求的LOG
+                long requestLifetime = stopwatch.elapsed(TimeUnit.MILLISECONDS);
                 logSlowRequests(requestLifetime, request, responseContents, statusLine);
 
                 if (statusCode < 200 || statusCode > 299) {
                     throw new IOException();
                 }
                 return new NetworkResponse(statusCode, responseContents, responseHeaders, false,
-                        System.currentTimeMillis() - requestStart);
+                        stopwatch.elapsed(TimeUnit.MILLISECONDS));
             } catch (SocketTimeoutException e) {
                 attemptRetryOnException("socket", request, new TimeoutError());
             } catch (ConnectTimeoutException e) {
@@ -136,28 +141,28 @@ public class BasicNetwork implements Network {
             } catch (MalformedURLException e) {
                 throw new RuntimeException("Bad URL " + request.getUrl(), e);
             } catch (IOException e) {
-                int statusCode = 0;
-                NetworkResponse networkResponse = null;
+                int statusCode;
+                NetworkResponse networkResponse;
                 if (httpResponse != null) {
                     statusCode = httpResponse.getStatusLine().getStatusCode();
                 } else {
                     throw new NoConnectionError(e);
                 }
-                if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || 
-                		statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-                	LOG.error("Request at {} has been redirected to {}", request.getOriginUrl(), request.getUrl());
+                if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY ||
+                        statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+                    LOG.error("Request at {} has been redirected to {}", request.getOriginUrl(), request.getUrl());
                 } else {
                     LOG.error("Unexpected response code {} for {}", statusCode, request.getUrl());
                 }
                 if (responseContents != null) {
                     networkResponse = new NetworkResponse(statusCode, responseContents,
-                            responseHeaders, false, System.currentTimeMillis() - requestStart);
+                            responseHeaders, false, stopwatch.elapsed(TimeUnit.MILLISECONDS));
                     if (statusCode == HttpStatus.SC_UNAUTHORIZED ||
                             statusCode == HttpStatus.SC_FORBIDDEN) {
                         attemptRetryOnException("auth",
                                 request, new AuthFailureError(networkResponse));
-                    } else if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY || 
-                    			statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
+                    } else if (statusCode == HttpStatus.SC_MOVED_PERMANENTLY ||
+                            statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
                         attemptRetryOnException("redirect",
                                 request, new RedirectError(networkResponse));
                     } else {
@@ -175,19 +180,23 @@ public class BasicNetwork implements Network {
      * Logs requests that took over SLOW_REQUEST_THRESHOLD_MS to complete.
      */
     private void logSlowRequests(long requestLifetime, Request<?> request,
-            byte[] responseContents, StatusLine statusLine) {
+                                 byte[] responseContents, StatusLine statusLine) {
         if (LOG.isDebugEnabled() || requestLifetime > SLOW_REQUEST_THRESHOLD_MS) {
             LOG.debug("HTTP response for request=<{}> [lifetime={}], [size={}], " +
-                    "[rc={}], [retryCount={}]", request, requestLifetime,
+                            "[rc={}], [retryCount={}]", request, requestLifetime,
                     responseContents != null ? responseContents.length : "null",
                     statusLine.getStatusCode(), request.getRetryPolicy().getCurrentRetryCount());
         }
     }
 
     /**
-     * Attempts to prepare the request for a retry. If there are no more attempts remaining in the
-     * request's retry policy, a timeout exception is thrown.
-     * @param request The request to use.
+     * /**
+     * 尝试对抛出异常的请求进行重试，如果超出了最大重试次数，则抛出超时异常。
+     *
+     * @param logPrefix LOG的前缀
+     * @param request 需要重试的请求
+     * @param exception 当前抛出的异常
+     * @throws SoarError 超过最大重试次数时的超时异常
      */
     private static void attemptRetryOnException(String logPrefix, Request<?> request,
                                                 SoarError exception) throws SoarError {
@@ -222,7 +231,9 @@ public class BasicNetwork implements Network {
         LOG.info("HTTP ERROR({}) {} ms to fetch {}", what, (now - start), url);
     }
 
-    /** Reads the contents of HttpEntity into a byte[]. */
+    /**
+     * Reads the contents of HttpEntity into a byte[].
+     */
     private byte[] entityToBytes(HttpEntity entity) throws IOException, ServerError {
         PoolingByteArrayOutputStream bytes =
                 new PoolingByteArrayOutputStream(mPool, (int) entity.getContentLength());
@@ -253,12 +264,14 @@ public class BasicNetwork implements Network {
     }
 
     /**
-     * Converts Headers[] to Map<String, String>.
+     * <pre>
+     * {@code 将Headers[]转换成Map<String, String>.}
+     * </pre>
      */
     protected static Map<String, String> convertHeaders(Header[] headers) {
         Map<String, String> result = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-        for (int i = 0; i < headers.length; i++) {
-            result.put(headers[i].getName(), headers[i].getValue());
+        for (Header header : headers) {
+            result.put(header.getName(), header.getValue());
         }
         return result;
     }
